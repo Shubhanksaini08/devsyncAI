@@ -280,24 +280,24 @@ const Landing = () => {
                                 </div>
 
                                 <div className="max-w-xl text-center">
-                                    <h4 className={`text-3xl md:text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Astik Gupta</h4>
+                                    <h4 className={`text-3xl md:text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shubhank Saini</h4>
                                     <p className="text-blue-400 font-bold mb-8 tracking-[0.2em] uppercase text-xs">Founder of DevSync AI</p>
                                     
                                     <div className={`h-px w-32 bg-gradient-to-r from-transparent via-gray-600 to-transparent mx-auto mb-10 ${isDarkMode ? 'opacity-100' : 'opacity-20'}`}></div>
                                     
                                     <p className={`text-lg md:text-xl leading-relaxed font-light italic ${isDarkMode ? 'text-gray-300 opacity-90' : 'text-gray-600 opacity-100'}`}>
-                                        "Astik is a Computer Science engineer and developer building AI-powered tools for modern software teams. <span className={isDarkMode ? "text-white font-medium" : "text-gray-900 font-bold"}>DevSync AI</span> was created to help developers collaborate in real time, write better code, and build products faster using intelligent, context-aware AI assistance."
+                                        "Shubhank is a Computer Science engineer and developer building AI-powered tools for modern software teams. <span className={isDarkMode ? "text-white font-medium" : "text-gray-900 font-bold"}>DevSync AI</span> was created to help developers collaborate in real time, write better code, and build products faster using intelligent, context-aware AI assistance."
                                     </p>
                                 </div>
 
                                 <div className="flex gap-6 mt-2">
-                                    <a href="https://www.linkedin.com/in/astik-gupta-a625b1244/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
+                                    <a href="https://www.linkedin.com/in/shubhank-saini/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1">
                                         <i className="ri-linkedin-box-fill text-xl"></i>
                                     </a>
-                                    <a href="https://github.com/astikgupta" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-gray-950 hover:text-white transition-all transform hover:-translate-y-1 border border-gray-700">
+                                    <a href="https://github.com/Shubhanksaini08 " target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-gray-950 hover:text-white transition-all transform hover:-translate-y-1 border border-gray-700">
                                         <i className="ri-github-fill text-xl"></i>
                                     </a>
-                                    <a href="https://astikgupta-git-main-astik-guptas-projects.vercel.app/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1">
+                                    <a href="https://shubhanksaini08.github.io/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center text-gray-400 hover:bg-indigo-600 hover:text-white transition-all transform hover:-translate-y-1">
                                         <i className="ri-global-line text-xl"></i>
                                     </a>
                                 </div>
