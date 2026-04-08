@@ -113,6 +113,31 @@ export const getProjectById = async ({ projectId }) => {
     return project;
 }
 
+export const saveMessage = async ({ projectId, sender, message }) => {
+    if (!projectId) {
+        throw new Error("projectId is required")
+    }
+
+    if (!message) {
+        throw new Error("message is required")
+    }
+
+    const updatedProject = await projectModel.findOneAndUpdate({
+        _id: projectId
+    }, {
+        $push: {
+            messages: {
+                sender,
+                message
+            }
+        }
+    }, {
+        new: true
+    })
+
+    return updatedProject;
+}
+
 export const updateFileTree = async ({ projectId, fileTree }) => {
     if (!projectId) {
         throw new Error("projectId is required")
