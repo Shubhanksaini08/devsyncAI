@@ -3,28 +3,42 @@ import redisClient from "../services/redis.service.js";
 
 export const authUser = async (req, res, next) => {
   try {
-    // Try to get token from cookie or Authorization header
-    const token =
-      req.cookies.token ||
-      (req.headers.authorization && req.headers.authorization.split(" ")[1]);
+    let token = null;
 
+    // ✅ 1. Pehle Authorization header check karo (frontend se yahi aa raha hai)
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // ✅ 2. Agar header me nahi mila, tab cookie check karo
+    if (!token && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // ❌ Token hi nahi mila
     if (!token) {
       return res.status(401).json({ error: "Unauthorized User - No Token" });
     }
 
-    // Check if token is blacklisted in Redis
+    // ✅ 3. Redis blacklist check
     const isBlackListed = await redisClient.get(token);
     if (isBlackListed) {
-      res.cookie("token", "");
-      return res.status(401).json({ error: "Unauthorized User - Token Blacklisted" });
+      res.clearCookie("token");
+      return res
+        .status(401)
+        .json({ error: "Unauthorized User - Token Blacklisted" });
     }
 
-    // Verify JWT
+    // ✅ 4. JWT verify
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // contains id & email (added during login)
+    req.user = decoded;
+
     next();
   } catch (error) {
-    console.error("Auth Error:", error);
+    console.error("Auth Error:", error.message);
     return res.status(401).json({ error: "Unauthorized User - Invalid Token" });
   }
 };
