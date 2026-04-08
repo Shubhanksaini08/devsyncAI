@@ -20,6 +20,22 @@ const projectSchema = new mongoose.Schema({
         type: Object,
         default: {}
     },
+    messages: [
+        {
+            sender: {
+                _id: { type: String },
+                email: { type: String }
+            },
+            message: {
+                type: String,
+                required: true
+            },
+            timestamp: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ]
 
 })
 
