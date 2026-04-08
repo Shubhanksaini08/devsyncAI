@@ -160,9 +160,10 @@ const Project = () => {
 
         if (location.state?.project?._id) {
             axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
-                console.log(res.data.project)
-                setProject(res.data.project)
-                setFileTree(res.data.project?.fileTree || {})
+                const projectData = res.data.project;
+                setProject(projectData)
+                setFileTree(projectData?.fileTree || {})
+                setMessages(projectData?.messages || [])
             })
         }
 
