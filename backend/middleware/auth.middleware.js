@@ -23,13 +23,18 @@ export const authUser = async (req, res, next) => {
       return res.status(401).json({ error: "Unauthorized User - No Token" });
     }
 
-    // ✅ 3. Redis blacklist check
-    const isBlackListed = await redisClient.get(token);
-    if (isBlackListed) {
-      res.clearCookie("token");
-      return res
-        .status(401)
-        .json({ error: "Unauthorized User - Token Blacklisted" });
+    // ✅ 3. Redis blacklist check (Safe handling)
+    try {
+      const isBlackListed = await redisClient.get(token);
+      if (isBlackListed) {
+        res.clearCookie("token");
+        return res
+          .status(401)
+          .json({ error: "Unauthorized User - Token Blacklisted" });
+      }
+    } catch (redisError) {
+      console.error("Redis Blacklist Check Error (Skipping):", redisError.message);
+      // We skip the blacklist check if Redis is down to allow legitimate users access
     }
 
     // ✅ 4. JWT verify
