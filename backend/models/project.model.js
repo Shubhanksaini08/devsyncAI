@@ -1,163 +1,121 @@
-import projectModel from '../models/project.model.js';
+import 'dotenv/config';
+import http from 'http';
+import app from './app.js';
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import projectModel from './models/project.model.js';
+import { generateResult } from './services/ai.service.js';
+import * as projectService from './services/project.service.js';
 
-export const createProject = async ({
-    name, userId
-}) => {
-    if (!name) {
-        throw new Error('Name is required')
-    }
-    if (!userId) {
-        throw new Error('UserId is required')
-    }
+const port = process.env.PORT || 3000;
 
-    let project;
+
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+    }
+});
+
+
+io.use(async (socket, next) => {
+
     try {
-        project = await projectModel.create({
-            name,
-            users: [ userId ]
-        });
+
+        const token = socket.handshake.auth?.token || socket.handshake.headers.authorization?.split(' ')[ 1 ];
+        const projectId = socket.handshake.query.projectId;
+
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return next(new Error('Invalid projectId'));
+        }
+
+
+        socket.project = await projectModel.findById(projectId);
+
+
+        if (!token) {
+            return next(new Error('Authentication error'))
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (!decoded) {
+            return next(new Error('Authentication error'))
+        }
+
+
+        socket.user = decoded;
+
+        next();
+
     } catch (error) {
-        if (error.code === 11000) {
-            throw new Error('Project name already exists');
+        next(error)
+    }
+
+})
+
+
+io.on('connection', socket => {
+    socket.roomId = socket.project._id.toString()
+
+
+    console.log('a user connected');
+
+
+
+    socket.join(socket.roomId);
+
+    socket.on('project-message', async data => {
+        const { message, sender } = data;
+
+        // Save User Message
+        await projectService.saveMessage({
+            projectId: socket.roomId,
+            sender: {
+                _id: sender._id,
+                email: sender.email
+            },
+            message
+        });
+
+        const aiIsPresentInMessage = message.includes('@ai');
+        socket.broadcast.to(socket.roomId).emit('project-message', data)
+
+        if (aiIsPresentInMessage) {
+            const prompt = message.replace('@ai', '');
+            const result = await generateResult(prompt);
+
+            const aiMessage = {
+                message: result,
+                sender: {
+                    _id: 'ai',
+                    email: 'AI'
+                }
+            };
+
+            // Save AI Message
+            await projectService.saveMessage({
+                projectId: socket.roomId,
+                sender: aiMessage.sender._id,
+                message: aiMessage.message
+            });
+
+            io.to(socket.roomId).emit('project-message', aiMessage)
+            return
         }
-        throw error;
-    }
-
-    return project;
-
-}
-
-
-export const getAllProjectByUserId = async ({ userId }) => {
-    if (!userId) {
-        throw new Error('UserId is required')
-    }
-
-    const allUserProjects = await projectModel.find({
-        users: userId
     })
 
-    return allUserProjects
-}
-
-export const addUsersToProject = async ({ projectId, users, userId }) => {
-
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-        throw new Error("Invalid projectId")
-    }
-
-    if (!users) {
-        throw new Error("users are required")
-    }
-
-    if (!Array.isArray(users) || users.some(userId => !mongoose.Types.ObjectId.isValid(userId))) {
-        throw new Error("Invalid userId(s) in users array")
-    }
-
-    if (!userId) {
-        throw new Error("userId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        throw new Error("Invalid userId")
-    }
-
-
-    const project = await projectModel.findOne({
-        _id: projectId,
-        users: userId
-    })
-
-    console.log(project)
-
-    if (!project) {
-        throw new Error("User not belong to this project")
-    }
-
-    const updatedProject = await projectModel.findOneAndUpdate({
-        _id: projectId
-    }, {
-        $addToSet: {
-            users: {
-                $each: users
-            }
-        }
-    }, {
-        new: true
-    })
-
-    return updatedProject
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+        socket.leave(socket.roomId)
+    });
+});
 
 
 
-}
 
-export const getProjectById = async ({ projectId }) => {
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-        throw new Error("Invalid projectId")
-    }
-
-    const project = await projectModel.findOne({
-        _id: projectId
-    }).populate('users')
-
-    return project;
-}
-
-export const saveMessage = async ({ projectId, sender, message }) => {
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!message) {
-        throw new Error("message is required")
-    }
-
-    const updatedProject = await projectModel.findOneAndUpdate({
-        _id: projectId
-    }, {
-        $push: {
-            messages: {
-                sender,
-                message
-            }
-        }
-    }, {
-        new: true
-    })
-
-    return updatedProject;
-}
-
-export const updateFileTree = async ({ projectId, fileTree }) => {
-    if (!projectId) {
-        throw new Error("projectId is required")
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-        throw new Error("Invalid projectId")
-    }
-
-    if (!fileTree) {
-        throw new Error("fileTree is required")
-    }
-
-    const project = await projectModel.findOneAndUpdate({
-        _id: projectId
-    }, {
-        fileTree
-    }, {
-        new: true
-    })
-
-    return project;
-}
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+})
